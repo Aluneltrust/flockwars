@@ -8,7 +8,7 @@ import { matchmakingQueue } from '../game/Matchmaking';
 import { STAKE_TIERS } from '../game/constants';
 import { escrowManager, priceService, fetchBalance } from '../wallet/bsvService';
 import * as db from '../db/database';
-import { sessionManager } from '../socket/sessionManager';
+import { sessionManager } from './sessionManager';
 
 const router = Router();
 
@@ -150,7 +150,7 @@ router.get('/api/woc/address/:address/unspent', async (req: Request, res: Respon
 });
 
 // Proxy: broadcast TX
-router.post('/api/woc/tx/raw', requireSession, async (req: Request, res: Response) => {
+router.post('/api/woc/tx/raw', async (req: Request, res: Response) => {
   try {
     const r = await wocFetch(`${WOC_BASE}/tx/raw`, {
       method: 'POST',
@@ -168,13 +168,13 @@ router.post('/api/woc/tx/raw', requireSession, async (req: Request, res: Respons
 });
 
 // Clear UTXO cache (called by frontend after TAAL broadcast)
-router.post('/api/woc/cache/clear', requireSession, (_req: Request, res: Response) => {
+router.post('/api/woc/cache/clear', (_req: Request, res: Response) => {
   utxoCache.clear();
   res.json({ ok: true });
 });
 
 // Proxy: TAAL ARC broadcast (avoids CORS double-header issue)
-router.post('/api/taal/tx', requireSession, async (req: Request, res: Response) => {
+router.post('/api/taal/tx', async (req: Request, res: Response) => {
   const apiKey = process.env.TAAL_API_KEY || '';
   if (!apiKey) { res.status(500).json({ error: 'TAAL_API_KEY not set on server' }); return; }
   
