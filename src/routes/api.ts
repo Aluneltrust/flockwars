@@ -8,7 +8,7 @@ import { matchmakingQueue } from '../game/Matchmaking';
 import { STAKE_TIERS } from '../game/constants';
 import { escrowManager, priceService, fetchBalance } from '../wallet/bsvService';
 import * as db from '../db/database';
-import { sessionManager } from './sessionManager';
+import { sessionManager } from '../socket/sessionManager';
 
 const router = Router();
 
