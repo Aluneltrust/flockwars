@@ -110,7 +110,7 @@ async function wocFetch(url: string, options?: RequestInit): Promise<globalThis.
 }
 
 // Proxy: get raw TX hex (cached permanently — TX hex never changes)
-router.get('/api/woc/tx/:txid/hex', requireSession, async (req: Request, res: Response) => {
+router.get('/api/woc/tx/:txid/hex', async (req: Request, res: Response) => {
   const txid = req.params.txid;
   
   // Check cache first
@@ -129,7 +129,7 @@ router.get('/api/woc/tx/:txid/hex', requireSession, async (req: Request, res: Re
 });
 
 // Proxy: get address UTXOs (cached 5s)
-router.get('/api/woc/address/:address/unspent', requireSession, async (req: Request, res: Response) => {
+router.get('/api/woc/address/:address/unspent', async (req: Request, res: Response) => {
   const address = req.params.address;
   
   const cached = utxoCache.get(address);
@@ -206,7 +206,7 @@ router.post('/api/taal/tx', requireSession, async (req: Request, res: Response) 
 // Cache tx details — confirmed TXs never change
 const txDetailCache = new Map<string, any>();
 
-router.get('/api/woc/address/:address/history', requireSession, async (req: Request, res: Response) => {
+router.get('/api/woc/address/:address/history', async (req: Request, res: Response) => {
   const { address } = req.params;
   const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
 
