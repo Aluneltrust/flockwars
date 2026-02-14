@@ -23,7 +23,7 @@ function rateCheck(socket: Socket, event: string): boolean {
 
 // Track pending session revocations so we can cancel them on reconnect
 const pendingRevocations = new Map<string, NodeJS.Timeout>(); // gameId:slot → timer
-const REVOCATION_DELAY_MS = 35_000; // slightly longer than reconnect grace (30s)
+const REVOCATION_DELAY_MS = 125_000; // slightly longer than reconnect grace (120s)
 
 export function setupSocketHandlers(io: Server): void {
 
@@ -88,6 +88,18 @@ export function setupSocketHandlers(io: Server): void {
       reason: `${game[slot].username} needs to add funds (60s)`,
       timeoutMs: game.pauseTimeoutMs,
     });
+  };
+
+  gameManager.onDisconnectTimeout = async (gameId, winnerSlot, loserSlot) => {
+    const game = gameManager.getGame(gameId);
+    if (!game || game.phase === 'gameover') return;
+    const result = gameManager.endGame(game, winnerSlot, 'disconnect');
+    // Notify the remaining player they won
+    io.to(game[winnerSlot].socketId).emit('opponent_disconnected', {
+      gameOver: true,
+      message: `${game[loserSlot].username} didn't reconnect in time. You win!`,
+    });
+    await handleGameEnd(game, result);
   };
 
   // ==========================================================================
@@ -590,7 +602,7 @@ export function setupSocketHandlers(io: Server): void {
         const game = gameManager.getGame(gameResult.gameId);
         
         if (gameResult.graceStarted && game) {
-          // Delay session revocation — give player time to reconnect
+          // Delay session revocation — give player time to reconnect (2 min)
           const revocationKey = `${gameResult.gameId}:${gameResult.slot}`;
           const timer = setTimeout(() => {
             sessionManager.revokeBySocket(socket.id);
@@ -601,18 +613,9 @@ export function setupSocketHandlers(io: Server): void {
           const opp = gameManager.opponentSlot(gameResult.slot);
           io.to(game[opp].socketId).emit('opponent_disconnected', {
             gameOver: false,
-            message: `${game[gameResult.slot].username} disconnected. 30s to reconnect...`,
-            graceMs: 30000,
+            message: `${game[gameResult.slot].username} disconnected. 2 min to reconnect...`,
+            graceMs: 120000,
           });
-        } else if (gameResult.immediateResult && game) {
-          // Immediate end (e.g., during setup) — revoke session now
-          sessionManager.revokeBySocket(socket.id);
-          const opp = gameManager.opponentSlot(gameResult.slot);
-          io.to(game[opp].socketId).emit('opponent_disconnected', {
-            gameOver: true,
-            message: `${game[gameResult.slot].username} disconnected. You win!`,
-          });
-          await handleGameEnd(game, gameResult.immediateResult);
         } else {
           // No game impact — revoke immediately
           sessionManager.revokeBySocket(socket.id);

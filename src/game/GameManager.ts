@@ -112,15 +112,17 @@ export class GameManager {
   private playerToGame = new Map<string, string>();
   private turnTimers = new Map<string, NodeJS.Timeout>();
   private pauseTimers = new Map<string, NodeJS.Timeout>();
+  private disconnectTimers = new Map<string, NodeJS.Timeout>(); // gameId:slot → timer
 
   private readonly TURN_TIMEOUT_MS = 90_000;     // 90s per turn
   private readonly PAUSE_TIMEOUT_MS = 60_000;     // 60s to add funds
-  private readonly RECONNECT_GRACE_MS = 30_000;   // 30s to reconnect
+  private readonly RECONNECT_GRACE_MS = 120_000;  // 2 minutes to reconnect
 
   // Callbacks for socket layer
   onTurnTimeout: ((gameId: string, winner: PlayerSlot, loser: PlayerSlot) => void) | null = null;
   onPauseTimeout: ((gameId: string, winner: PlayerSlot, loser: PlayerSlot) => void) | null = null;
   onFundsNeeded: ((gameId: string, slot: PlayerSlot, amountNeeded: number) => void) | null = null;
+  onDisconnectTimeout: ((gameId: string, winner: PlayerSlot, loser: PlayerSlot) => void) | null = null;
 
   // ==========================================================================
   // CREATE GAME
@@ -417,6 +419,9 @@ export class GameManager {
     game.pendingShot = null;
     this.clearTurnTimer(game.id);
     this.clearPauseTimer(game.id);
+    // Clear any disconnect grace timers
+    this.clearDisconnectTimer(game.id, 'player1');
+    this.clearDisconnectTimer(game.id, 'player2');
 
     const loser = this.opponentSlot(winner);
     const cutPct = Math.min(100, Math.max(0, parseInt(process.env.PLATFORM_CUT_PERCENT || '50') || 50));
@@ -441,6 +446,10 @@ export class GameManager {
     return { gameId: game.id, result };
   }
 
+  // ==========================================================================
+  // DISCONNECT — Always gives grace period (even during setup)
+  // ==========================================================================
+
   handleDisconnect(socketId: string): {
     gameId: string; slot: PlayerSlot;
     graceStarted: boolean; immediateResult: GameOverResult | null;
@@ -454,42 +463,70 @@ export class GameManager {
     game[slot].disconnectedAt = Date.now();
     const winner = this.opponentSlot(slot);
 
-    if (game.phase === 'setup') {
-      const result = this.endGame(game, winner, 'disconnect');
-      return { gameId: game.id, slot, graceStarted: false, immediateResult: result };
-    }
+    // Pause turn timer while disconnected
+    this.clearTurnTimer(game.id);
 
-    if (game.phase === 'playing' || game.phase === 'paused') {
-      setTimeout(() => {
-        const g = this.games.get(game.id);
-        if (!g || g.phase === 'gameover') return;
-        if (!g[slot].connected) {
-          const result = this.endGame(g, winner, 'disconnect');
-          this.onTurnTimeout?.(game.id, winner, slot);
-        }
-      }, this.RECONNECT_GRACE_MS);
-      return { gameId: game.id, slot, graceStarted: true, immediateResult: null };
-    }
+    // Start disconnect grace timer — applies to ALL phases (setup, playing, paused)
+    const timerKey = `${game.id}:${slot}`;
+    this.clearDisconnectTimer(game.id, slot); // clear any existing
 
-    return null;
+    const timer = setTimeout(() => {
+      const g = this.games.get(game.id);
+      if (!g || g.phase === 'gameover') return;
+      if (!g[slot].connected) {
+        const result = this.endGame(g, winner, 'disconnect');
+        this.onDisconnectTimeout?.(game.id, winner, slot);
+      }
+    }, this.RECONNECT_GRACE_MS);
+
+    this.disconnectTimers.set(timerKey, timer);
+    return { gameId: game.id, slot, graceStarted: true, immediateResult: null };
   }
+
+  // ==========================================================================
+  // RECONNECT
+  // ==========================================================================
 
   handleReconnect(socketId: string, gameId: string, address: string): {
     success: boolean; game?: GameState; slot?: PlayerSlot; error?: string;
   } {
     const game = this.games.get(gameId);
     if (!game) return { success: false, error: 'Game not found' };
+    if (game.phase === 'gameover') return { success: false, error: 'Game already ended' };
 
     let slot: PlayerSlot | null = null;
     if (game.player1.address === address) slot = 'player1';
     else if (game.player2.address === address) slot = 'player2';
     if (!slot) return { success: false, error: 'Not in this game' };
 
+    // Cancel the disconnect grace timer
+    this.clearDisconnectTimer(gameId, slot);
+
     game[slot].connected = true;
     game[slot].disconnectedAt = null;
     game[slot].socketId = socketId;
     this.playerToGame.set(socketId, gameId);
+
+    // Restart turn timer if game is in playing phase and it's someone's turn
+    if (game.phase === 'playing' && !game.pendingShot) {
+      game.turnStartedAt = Date.now();
+      this.startTurnTimer(game);
+    }
+
     return { success: true, game, slot };
+  }
+
+  // ==========================================================================
+  // DISCONNECT TIMER HELPERS
+  // ==========================================================================
+
+  private clearDisconnectTimer(gameId: string, slot: PlayerSlot): void {
+    const key = `${gameId}:${slot}`;
+    const t = this.disconnectTimers.get(key);
+    if (t) {
+      clearTimeout(t);
+      this.disconnectTimers.delete(key);
+    }
   }
 
   // ==========================================================================
@@ -530,7 +567,10 @@ export class GameManager {
     if (!g) return;
     if (this.playerToGame.get(g.player1.socketId) === id) this.playerToGame.delete(g.player1.socketId);
     if (this.playerToGame.get(g.player2.socketId) === id) this.playerToGame.delete(g.player2.socketId);
-    this.clearTurnTimer(id); this.clearPauseTimer(id); this.games.delete(id);
+    this.clearTurnTimer(id); this.clearPauseTimer(id);
+    this.clearDisconnectTimer(id, 'player1');
+    this.clearDisconnectTimer(id, 'player2');
+    this.games.delete(id);
   }
   getActiveCount() { return this.games.size; }
 }
