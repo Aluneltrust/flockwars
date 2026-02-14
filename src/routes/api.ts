@@ -128,8 +128,8 @@ router.get('/api/escrow/:gameId', requireSession, async (req: Request, res: Resp
   }
 });
 
-// Balance check (authenticated — prevents abuse as open balance-check proxy)
-router.get('/api/balance/:address', requireSession, async (req: Request, res: Response) => {
+// Balance check (public — reads public blockchain data)
+router.get('/api/balance/:address', async (req: Request, res: Response) => {
   if (!/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(req.params.address)) {
     res.status(400).json({ error: 'Invalid address format' });
     return;
