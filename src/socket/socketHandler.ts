@@ -10,6 +10,7 @@ import { escrowManager, priceService, fetchBalance, verifyAndBroadcastTx } from 
 import * as db from '../db/database';
 import { socketRateLimiter } from './socketRateLimiter';
 import { sessionManager } from './sessionManager';
+import { lobbyManager } from '../game/LobbyManager';
 
 // Rate-limited event wrapper — returns false (and emits error) if blocked
 function rateCheck(socket: Socket, event: string): boolean {
@@ -20,7 +21,41 @@ function rateCheck(socket: Socket, event: string): boolean {
   return true;
 }
 
+// Track pending session revocations so we can cancel them on reconnect
+const pendingRevocations = new Map<string, NodeJS.Timeout>(); // gameId:slot → timer
+const REVOCATION_DELAY_MS = 35_000; // slightly longer than reconnect grace (30s)
+
 export function setupSocketHandlers(io: Server): void {
+
+  // ==========================================================================
+  // LOBBY BROADCAST — sends updated player list to all connected sockets
+  // Throttled to max once per second to avoid flooding
+  // ==========================================================================
+  let lobbyBroadcastTimer: NodeJS.Timeout | null = null;
+  function broadcastLobby(): void {
+    if (lobbyBroadcastTimer) return; // already scheduled
+    lobbyBroadcastTimer = setTimeout(() => {
+      lobbyBroadcastTimer = null;
+      const players = lobbyManager.getOnlinePlayers();
+      const count = lobbyManager.getOnlineCount();
+      console.log(`📡 Broadcasting lobby_update: ${count} players, sockets: ${io.engine.clientsCount}`);
+      io.emit('lobby_update', { players, onlineCount: count });
+    }, 500);
+  }
+
+  // Challenge expiry callback
+  lobbyManager.onChallengeExpired = (challenge) => {
+    io.to(challenge.fromSocketId).emit('challenge_expired', {
+      challengeId: challenge.id,
+      toUsername: challenge.toUsername,
+      message: `Challenge to ${challenge.toUsername} expired`,
+    });
+    io.to(challenge.toSocketId).emit('challenge_expired', {
+      challengeId: challenge.id,
+      fromUsername: challenge.fromUsername,
+      message: `Challenge from ${challenge.fromUsername} expired`,
+    });
+  };
 
   // ==========================================================================
   // TIMEOUT CALLBACKS
@@ -60,8 +95,12 @@ export function setupSocketHandlers(io: Server): void {
   // ==========================================================================
 
   io.on('connection', (socket: Socket) => {
-    console.log(`🔌 ${socket.id} connected`);
-
+      console.log(`🔌 ${socket.id} connected`);
+      
+      // TEMP DEBUG: confirm events are being received
+      socket.onAny((event, ...args) => {
+        console.log(`📨 [${socket.id}] ${event}`, JSON.stringify(args).slice(0, 200));
+      });
     // ========================================================================
     // FIND MATCH
     // ========================================================================
@@ -85,8 +124,6 @@ export function setupSocketHandlers(io: Server): void {
       const sessionToken = sessionManager.create(socket.id, address);
       socket.emit('session_token', { token: sessionToken });
 
-      // Skip balance check — WoC rate limits cause false rejections.
-      // If player can't pay during the game, payment will fail gracefully.
       const bsvPrice = await priceService.getPrice();
 
       await db.ensurePlayer(address, clean);
@@ -103,6 +140,11 @@ export function setupSocketHandlers(io: Server): void {
         if (!game) { socket.emit('error', { message: 'Game creation failed' }); return; }
 
         await db.recordGameStart(game.id, stakeTier, result.opponent.address, address);
+
+        // Update lobby status for both players
+        lobbyManager.setStatus(result.opponent.socketId, 'in_game');
+        lobbyManager.setStatus(socket.id, 'in_game');
+        broadcastLobby();
 
         const payload = (oppName: string, oppAddr: string, role: PlayerSlot) => ({
           gameId: game.id,
@@ -122,6 +164,8 @@ export function setupSocketHandlers(io: Server): void {
 
         console.log(`🎮 ${result.opponent.username} vs ${clean} @ ${tier.name}`);
       } else {
+        lobbyManager.setStatus(socket.id, 'matchmaking');
+        broadcastLobby();
         socket.emit('matchmaking_started', { tier: tier.name });
       }
     });
@@ -129,7 +173,175 @@ export function setupSocketHandlers(io: Server): void {
     socket.on('cancel_matchmaking', () => {
       if (!rateCheck(socket, 'cancel_matchmaking')) return;
       matchmakingQueue.remove(socket.id);
+      lobbyManager.setStatus(socket.id, 'idle');
       socket.emit('matchmaking_cancelled');
+      broadcastLobby();
+    });
+
+    // ========================================================================
+    // LOBBY — Online player list + direct challenges
+    // ========================================================================
+
+    socket.on('join_lobby', async (data: { address: string; username: string }) => {
+      if (!rateCheck(socket, 'join_lobby')) return;
+      const { address, username } = data;
+
+      console.log(`📋 join_lobby: ${username} (${address?.slice(0, 8)}...)`);
+
+      if (!username || username.length > 20) {
+        console.log(`📋 join_lobby rejected: invalid username "${username}"`);
+        return;
+      }
+      if (!address || !/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(address)) {
+        console.log(`📋 join_lobby rejected: invalid address "${address}"`);
+        return;
+      }
+
+      const clean = username.replace(/[<>&"']/g, '').trim();
+
+      // Fetch player stats from DB for display
+      let stats = { gamesWon: 0, gamesPlayed: 0 };
+      try {
+        const playerStats = await db.getPlayerStats(address);
+        if (playerStats) {
+          stats = { gamesWon: playerStats.games_won || 0, gamesPlayed: playerStats.games_played || 0 };
+        }
+      } catch { /* ignore */ }
+
+      lobbyManager.join(socket.id, address, clean, stats);
+      console.log(`📋 Lobby now has ${lobbyManager.getOnlineCount()} players:`, lobbyManager.getOnlinePlayers().map(p => p.username));
+      broadcastLobby();
+    });
+
+    socket.on('get_lobby', () => {
+      if (!rateCheck(socket, 'get_lobby')) return;
+      const players = lobbyManager.getOnlinePlayers();
+      const count = lobbyManager.getOnlineCount();
+      console.log(`📋 get_lobby requested by ${socket.id}: ${count} players`);
+      socket.emit('lobby_update', { players, onlineCount: count });
+    });
+
+    socket.on('challenge_player', (data: { toAddress: string; stakeTier: number }) => {
+      if (!rateCheck(socket, 'challenge_player')) return;
+      const { toAddress, stakeTier } = data;
+
+      const tier = getTierByValue(stakeTier);
+      if (!tier) { socket.emit('error', { message: 'Invalid tier' }); return; }
+
+      const result = lobbyManager.createChallenge(socket.id, toAddress, stakeTier);
+      if (!result.success) {
+        socket.emit('challenge_error', { error: result.error });
+        return;
+      }
+
+      const challenge = result.challenge!;
+
+      // Notify challenger
+      socket.emit('challenge_sent', {
+        challengeId: challenge.id,
+        toUsername: challenge.toUsername,
+        toAddress: challenge.toAddress,
+        stakeTier,
+        tierName: tier.name,
+        expiresAt: challenge.expiresAt,
+      });
+
+      // Notify challenged player
+      io.to(challenge.toSocketId).emit('challenge_received', {
+        challengeId: challenge.id,
+        fromUsername: challenge.fromUsername,
+        fromAddress: challenge.fromAddress,
+        stakeTier,
+        tierName: tier.name,
+        expiresAt: challenge.expiresAt,
+      });
+    });
+
+    socket.on('accept_challenge', async (data: { challengeId: string }) => {
+      if (!rateCheck(socket, 'accept_challenge')) return;
+
+      const result = lobbyManager.acceptChallenge(data.challengeId, socket.id);
+      if (!result.success) {
+        socket.emit('challenge_error', { error: result.error });
+        return;
+      }
+
+      const challenge = result.challenge!;
+      const tier = getTierByValue(challenge.stakeTier);
+      if (!tier) { socket.emit('error', { message: 'Invalid tier' }); return; }
+
+      // Issue session tokens for both players
+      const fromPlayer = lobbyManager.getPlayer(challenge.fromSocketId);
+      const toPlayer = lobbyManager.getPlayer(challenge.toSocketId);
+      if (!fromPlayer || !toPlayer) {
+        socket.emit('challenge_error', { error: 'Player left lobby' });
+        return;
+      }
+
+      const fromToken = sessionManager.create(challenge.fromSocketId, challenge.fromAddress);
+      const toToken = sessionManager.create(challenge.toSocketId, challenge.toAddress);
+      io.to(challenge.fromSocketId).emit('session_token', { token: fromToken });
+      io.to(challenge.toSocketId).emit('session_token', { token: toToken });
+
+      await db.ensurePlayer(challenge.fromAddress, challenge.fromUsername);
+      await db.ensurePlayer(challenge.toAddress, challenge.toUsername);
+
+      // Create the game
+      const game = await gameManager.createGame(
+        challenge.fromSocketId, challenge.fromAddress, challenge.fromUsername,
+        challenge.toSocketId, challenge.toAddress, challenge.toUsername,
+        challenge.stakeTier,
+      );
+      if (!game) {
+        socket.emit('error', { message: 'Game creation failed' });
+        return;
+      }
+
+      await db.recordGameStart(game.id, challenge.stakeTier, challenge.fromAddress, challenge.toAddress);
+
+      // Update lobby status
+      lobbyManager.setStatus(challenge.fromSocketId, 'in_game');
+      lobbyManager.setStatus(challenge.toSocketId, 'in_game');
+      broadcastLobby();
+
+      const payload = (oppName: string, oppAddr: string, role: PlayerSlot) => ({
+        gameId: game.id,
+        opponent: { username: oppName, address: oppAddr },
+        role,
+        tier: { name: tier.name, missCents: tier.missCents, hitCents: tier.hitCents },
+        missSats: game.missSats,
+        hitSats: game.hitSats,
+        escrowAddress: escrowManager.getGameAddress(game.id),
+        bsvPrice: game.bsvPriceAtStart,
+      });
+
+      io.to(challenge.fromSocketId).emit('match_found',
+        payload(challenge.toUsername, challenge.toAddress, 'player1'));
+      io.to(challenge.toSocketId).emit('match_found',
+        payload(challenge.fromUsername, challenge.fromAddress, 'player2'));
+
+      console.log(`🎮 Challenge: ${challenge.fromUsername} vs ${challenge.toUsername} @ ${tier.name}`);
+    });
+
+    socket.on('decline_challenge', (data: { challengeId: string }) => {
+      if (!rateCheck(socket, 'decline_challenge')) return;
+
+      const result = lobbyManager.declineChallenge(data.challengeId, socket.id);
+      if (!result.success) return;
+
+      const challenge = result.challenge!;
+      io.to(challenge.fromSocketId).emit('challenge_declined', {
+        challengeId: challenge.id,
+        byUsername: challenge.toUsername,
+        message: `${challenge.toUsername} declined your challenge`,
+      });
+      socket.emit('challenge_declined_ack', { challengeId: challenge.id });
+    });
+
+    socket.on('cancel_challenge', (data: { challengeId: string }) => {
+      if (!rateCheck(socket, 'cancel_challenge')) return;
+      lobbyManager.cancelChallengesFrom(socket.id);
+      socket.emit('challenge_cancelled_ack', { challengeId: data.challengeId });
     });
 
     // ========================================================================
@@ -176,10 +388,6 @@ export function setupSocketHandlers(io: Server): void {
       const slot = gameManager.getSlot(game, socket.id)!;
       const oppSlot = gameManager.opponentSlot(slot);
 
-      // Tell both players the result
-      // The PAYER gets a "payment_required" event
-      // The other player gets the shot result
-
       // Notify shooter of result
       socket.emit('shot_result', {
         position: res.position,
@@ -199,7 +407,7 @@ export function setupSocketHandlers(io: Server): void {
 
       // Tell the payer to send TX
       io.to(game[res.payer].socketId).emit('payment_required', {
-        type: res.result, // 'hit' or 'miss'
+        type: res.result,
         amount: res.amountSats,
         toAddress: res.payeeAddress,
         fromAddress: res.payerAddress,
@@ -211,7 +419,6 @@ export function setupSocketHandlers(io: Server): void {
 
     // ========================================================================
     // SUBMIT PAYMENT — client sends signed raw TX hex for verification + broadcast
-    // Also listen on verify_payment for backwards compat
     // ========================================================================
     const handlePaymentSubmit = async (data: { rawTxHex?: string; txid?: string }) => {
       if (!rateCheck(socket, 'verify_payment')) return;
@@ -235,7 +442,6 @@ export function setupSocketHandlers(io: Server): void {
       io.to(game.player2.socketId).emit('payment_confirmed', { txid });
 
       if (result.gameOver && result.winner) {
-        // endGame was already called inside verifyShot, just compute the result for handleGameEnd
         const loser = gameManager.opponentSlot(result.winner);
         const cutPct = parseInt(process.env.PLATFORM_CUT_PERCENT || '50');
         const winnerPayout = Math.floor(game.pot * (1 - cutPct / 100));
@@ -279,7 +485,6 @@ export function setupSocketHandlers(io: Server): void {
       const slot = gameManager.getSlot(game, socket.id);
       if (!slot || game.pausedFor !== slot) return;
 
-      // Re-check balance
       const ps = game.pendingShot;
       if (!ps) return;
 
@@ -289,7 +494,7 @@ export function setupSocketHandlers(io: Server): void {
         return;
       }
 
-      // Resume — tell payer to send TX now
+      // Resume
       io.to(game[slot].socketId).emit('payment_required', {
         type: ps.requiredTxType,
         amount: ps.requiredAmount,
@@ -332,6 +537,19 @@ export function setupSocketHandlers(io: Server): void {
       const slot = result.slot!;
       const opp = gameManager.opponentSlot(slot);
 
+      // Cancel any pending session revocation for this player
+      const revocationKey = `${game.id}:${slot}`;
+      const pendingTimer = pendingRevocations.get(revocationKey);
+      if (pendingTimer) {
+        clearTimeout(pendingTimer);
+        pendingRevocations.delete(revocationKey);
+        console.log(`🔄 Cancelled session revocation for ${slot} in game ${game.id.slice(0, 8)}`);
+      }
+
+      // Issue a fresh session token for the new socket
+      const sessionToken = sessionManager.create(socket.id, data.address);
+      socket.emit('session_token', { token: sessionToken });
+
       socket.emit('reconnect_result', {
         success: true,
         gameState: {
@@ -342,12 +560,15 @@ export function setupSocketHandlers(io: Server): void {
           sheepRemaining: game[slot].sheepRemaining,
           opponentSheepRemaining: game[opp].sheepRemaining,
           shotsReceived: Object.fromEntries(game[slot].shotsReceived),
+          // Include shots fired at opponent (for restoring the attack board)
+          shotsFiredResults: Object.fromEntries(game[opp].shotsReceived),
           pendingPayment: game.pendingShot && game.pendingShot.requiredFrom === slot
             ? { amount: game.pendingShot.requiredAmount, toAddress: game.pendingShot.requiredTo }
             : null,
         },
       });
       io.to(game[opp].socketId).emit('opponent_reconnected');
+      console.log(`🔄 ${game[slot].username} reconnected to game ${game.id.slice(0, 8)}`);
     });
 
     // ========================================================================
@@ -356,27 +577,49 @@ export function setupSocketHandlers(io: Server): void {
     socket.on('disconnect', async () => {
       console.log(`🔌 ${socket.id} disconnected`);
       socketRateLimiter.cleanup(socket.id);
-      sessionManager.revokeBySocket(socket.id);
       matchmakingQueue.remove(socket.id);
+      lobbyManager.leave(socket.id);
+      broadcastLobby();
 
-      const result = gameManager.handleDisconnect(socket.id);
-      if (!result) return;
-      const game = gameManager.getGame(result.gameId);
-      if (!game) return;
-      const opp = gameManager.opponentSlot(result.slot);
+      // DON'T revoke session immediately — delay it to allow reconnection
+      // The session will be revoked after the reconnect grace period expires,
+      // or cancelled if the player reconnects in time
+      const gameResult = gameManager.handleDisconnect(socket.id);
+      
+      if (gameResult) {
+        const game = gameManager.getGame(gameResult.gameId);
+        
+        if (gameResult.graceStarted && game) {
+          // Delay session revocation — give player time to reconnect
+          const revocationKey = `${gameResult.gameId}:${gameResult.slot}`;
+          const timer = setTimeout(() => {
+            sessionManager.revokeBySocket(socket.id);
+            pendingRevocations.delete(revocationKey);
+          }, REVOCATION_DELAY_MS);
+          pendingRevocations.set(revocationKey, timer);
 
-      if (result.immediateResult) {
-        io.to(game[opp].socketId).emit('opponent_disconnected', {
-          gameOver: true,
-          message: `${game[result.slot].username} disconnected. You win!`,
-        });
-        await handleGameEnd(game, result.immediateResult);
-      } else if (result.graceStarted) {
-        io.to(game[opp].socketId).emit('opponent_disconnected', {
-          gameOver: false,
-          message: `${game[result.slot].username} disconnected. 30s to reconnect...`,
-          graceMs: 30000,
-        });
+          const opp = gameManager.opponentSlot(gameResult.slot);
+          io.to(game[opp].socketId).emit('opponent_disconnected', {
+            gameOver: false,
+            message: `${game[gameResult.slot].username} disconnected. 30s to reconnect...`,
+            graceMs: 30000,
+          });
+        } else if (gameResult.immediateResult && game) {
+          // Immediate end (e.g., during setup) — revoke session now
+          sessionManager.revokeBySocket(socket.id);
+          const opp = gameManager.opponentSlot(gameResult.slot);
+          io.to(game[opp].socketId).emit('opponent_disconnected', {
+            gameOver: true,
+            message: `${game[gameResult.slot].username} disconnected. You win!`,
+          });
+          await handleGameEnd(game, gameResult.immediateResult);
+        } else {
+          // No game impact — revoke immediately
+          sessionManager.revokeBySocket(socket.id);
+        }
+      } else {
+        // Not in a game — revoke immediately
+        sessionManager.revokeBySocket(socket.id);
       }
     });
 
@@ -452,6 +695,15 @@ export function setupSocketHandlers(io: Server): void {
         { hits: game.player2.hits, misses: game.player2.misses, sheepLeft: game.player2.sheepRemaining },
       );
     } catch (err) { console.error('DB record failed:', err); }
+
+    // Clean up any pending revocations for this game
+    pendingRevocations.delete(`${game.id}:player1`);
+    pendingRevocations.delete(`${game.id}:player2`);
+
+    // Reset lobby status for both players
+    lobbyManager.setStatus(winner.socketId, 'idle');
+    lobbyManager.setStatus(loser.socketId, 'idle');
+    broadcastLobby();
 
     setTimeout(() => gameManager.removeGame(game.id), 60_000);
   }

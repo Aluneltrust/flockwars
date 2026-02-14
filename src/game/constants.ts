@@ -21,7 +21,6 @@ export const STAKE_TIERS: StakeTierDef[] = [
   { tier: 10,  name: 'Dime',     missCents: 5,    hitCents: 10  },
   { tier: 25,  name: 'Quarter',  missCents: 12.5, hitCents: 25  },
   { tier: 50,  name: 'Half',     missCents: 25,   hitCents: 50  },
-  { tier: 75,  name: 'Six Bits', missCents: 37.5, hitCents: 75  },
   { tier: 100, name: 'Dollar',   missCents: 50,   hitCents: 100 },
 ];
 

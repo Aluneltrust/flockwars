@@ -9,18 +9,25 @@ interface RateLimitConfig {
 }
 
 const DEFAULT_LIMITS: Record<string, RateLimitConfig> = {
-  find_match:         { maxRequests: 2,  windowMs: 10_000 },
-  cancel_matchmaking: { maxRequests: 3,  windowMs: 10_000 },
-  player_ready:       { maxRequests: 3,  windowMs: 10_000 },
-  fire_shot:          { maxRequests: 2,  windowMs: 2_000  },
-  verify_payment:     { maxRequests: 3,  windowMs: 5_000  },
-  submit_payment:     { maxRequests: 3,  windowMs: 5_000  },
-  funds_added:        { maxRequests: 2,  windowMs: 10_000 },
-  forfeit:            { maxRequests: 2,  windowMs: 10_000 },
-  reconnect_game:     { maxRequests: 3,  windowMs: 10_000 },
-  get_queue_info:     { maxRequests: 5,  windowMs: 10_000 },
-  get_leaderboard:    { maxRequests: 3,  windowMs: 10_000 },
-  leave_game:         { maxRequests: 2,  windowMs: 5_000  },
+  find_match:           { maxRequests: 2,  windowMs: 10_000 },
+  cancel_matchmaking:   { maxRequests: 3,  windowMs: 10_000 },
+  player_ready:         { maxRequests: 3,  windowMs: 10_000 },
+  fire_shot:            { maxRequests: 2,  windowMs: 2_000  },
+  verify_payment:       { maxRequests: 3,  windowMs: 5_000  },
+  submit_payment:       { maxRequests: 3,  windowMs: 5_000  },
+  funds_added:          { maxRequests: 2,  windowMs: 10_000 },
+  forfeit:              { maxRequests: 2,  windowMs: 10_000 },
+  reconnect_game:       { maxRequests: 3,  windowMs: 10_000 },
+  get_queue_info:       { maxRequests: 5,  windowMs: 10_000 },
+  get_leaderboard:      { maxRequests: 3,  windowMs: 10_000 },
+  leave_game:           { maxRequests: 2,  windowMs: 5_000  },
+  // Lobby events
+  join_lobby:           { maxRequests: 2,  windowMs: 10_000 },
+  get_lobby:            { maxRequests: 5,  windowMs: 10_000 },
+  challenge_player:     { maxRequests: 3,  windowMs: 15_000 },
+  accept_challenge:     { maxRequests: 3,  windowMs: 10_000 },
+  decline_challenge:    { maxRequests: 5,  windowMs: 10_000 },
+  cancel_challenge:     { maxRequests: 3,  windowMs: 10_000 },
 };
 
 export class SocketRateLimiter {
