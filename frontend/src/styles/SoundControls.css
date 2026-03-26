@@ -1,0 +1,147 @@
+/* ============================================================================
+   SOUND CONTROLS — Mute button + volume slider
+   Fixed bottom-right corner
+   ============================================================================ */
+
+.sound-controls {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+   z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 2rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.35rem;
+  transition: all 0.3s ease;
+}
+
+.sound-controls:hover {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* Mute button */
+.sound-mute-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.sound-mute-btn:hover {
+  background: rgba(251, 191, 36, 0.15);
+  transform: scale(1.1);
+}
+
+.sound-mute-btn:active {
+  transform: scale(0.95);
+}
+
+.sound-mute-btn.muted {
+  color: #64748b;
+  opacity: 0.6;
+}
+
+/* Volume slider */
+.sound-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(148, 163, 184, 0.2);
+  outline: none;
+  cursor: pointer;
+  transition: width 0.3s ease;
+}
+
+.sound-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s;
+}
+
+.sound-volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #f59e0b;
+}
+
+.sound-volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Muted state dims slider */
+.sound-controls.muted .sound-volume-slider {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Volume label */
+.sound-volume-label {
+  font-size: 0.6rem;
+  color: #64748b;
+  min-width: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   MOBILE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .sound-controls {
+    bottom: 0.75rem;
+    right: 0.75rem;
+    padding: 0.25rem 0.4rem 0.25rem 0.25rem;
+    gap: 0.4rem;
+  }
+
+  .sound-mute-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .sound-volume-slider {
+    width: 60px;
+  }
+}
+
+@media (max-width: 400px) {
+  .sound-controls {
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .sound-volume-slider {
+    width: 50px;
+  }
+}

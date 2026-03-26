@@ -1,0 +1,315 @@
+/* ============================================================================
+   INTRO PAGE — Flock Wars Landing
+   Cinematic first-impression with staggered reveals
+   ============================================================================ */
+
+.intro-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.intro-bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center 30%;
+  z-index: 0;
+  pointer-events: none;
+  filter: none;
+}
+
+/* Content container */
+.intro-content {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Staggered reveal animation */
+.intro-page .intro-hero,
+.intro-page .intro-description,
+.intro-page .intro-steps,
+.intro-page .intro-stakes,
+.intro-page .intro-cta,
+.intro-page .intro-footnote {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.intro-page.intro-visible .intro-hero {
+  opacity: 1; transform: translateY(0); transition-delay: 0.1s;
+}
+.intro-page.intro-visible .intro-description {
+  opacity: 1; transform: translateY(0); transition-delay: 0.3s;
+}
+.intro-page.intro-visible .intro-steps {
+  opacity: 1; transform: translateY(0); transition-delay: 0.5s;
+}
+.intro-page.intro-visible .intro-stakes {
+  opacity: 1; transform: translateY(0); transition-delay: 0.7s;
+}
+.intro-page.intro-visible .intro-cta {
+  opacity: 1; transform: translateY(0); transition-delay: 0.9s;
+}
+.intro-page.intro-visible .intro-footnote {
+  opacity: 1; transform: translateY(0); transition-delay: 1.05s;
+}
+
+/* ---- Hero ---- */
+.intro-hero {
+  margin-bottom: 1.75rem;
+}
+
+.intro-logo {
+  margin-bottom: 0.75rem;
+}
+
+.intro-logo-icon {
+  color: #fbbf24;
+  filter: drop-shadow(0 4px 16px rgba(251, 191, 36, 0.35));
+}
+
+.intro-title {
+  font-size: 3.2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 40%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.intro-tm {
+  font-size: 0.9rem;
+  font-weight: 400;
+  vertical-align: super;
+  letter-spacing: 0;
+  opacity: 0.6;
+  -webkit-text-fill-color: #b48a20;
+}
+
+.intro-tagline {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: #94a3b8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ---- Description ---- */
+.intro-description {
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.intro-description p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+/* ---- How It Works Steps ---- */
+.intro-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 0.875rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.intro-step {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  transition: background 0.2s;
+}
+
+.intro-step:last-child {
+  border-bottom: none;
+}
+
+.intro-step:hover {
+  background: rgba(251, 191, 36, 0.04);
+}
+
+.step-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.3px;
+}
+
+.step-desc {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+/* ---- Stakes callout ---- */
+.intro-stakes {
+  margin-bottom: 2rem;
+}
+
+.stakes-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: #7a8a9a;
+}
+
+.stakes-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.stakes-item svg {
+  color: #f59e0b;
+  opacity: 0.7;
+}
+
+.stakes-divider {
+  color: rgba(148, 163, 184, 0.25);
+  font-size: 1rem;
+}
+
+/* ---- CTA Button ---- */
+.intro-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+  padding: 1rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #0f172a;
+  background: linear-gradient(135deg, #fcd34d, #f59e0b);
+  border: none;
+  border-radius: 0.875rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 
+    0 4px 20px rgba(251, 191, 36, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.15) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.intro-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.intro-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 30px rgba(251, 191, 36, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.15) inset;
+}
+
+.intro-cta:hover::before {
+  left: 100%;
+}
+
+.intro-cta:active {
+  transform: translateY(0);
+}
+
+/* ---- Footnote ---- */
+.intro-footnote {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.4);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .intro-title {
+    font-size: 2.5rem;
+  }
+
+  .intro-tagline {
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+  }
+
+  .intro-description p {
+    font-size: 0.9rem;
+  }
+
+  .stakes-row {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .stakes-divider {
+    display: none;
+  }
+}

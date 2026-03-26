@@ -1,0 +1,164 @@
+/* ============================================================================
+   LUCIDE ICON UTILITIES
+   ============================================================================ */
+
+/* Inline icon — sits beside text in flow */
+.icon-inline {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+/* Color variants */
+.icon-amber { color: #fbbf24; }
+.icon-gold  { color: #f59e0b; }
+.icon-green { color: #4ade80; }
+.icon-red   { color: #f87171; }
+.icon-muted { color: #64748b; }
+
+/* Icons inside buttons — consistent alignment */
+.btn svg {
+  display: inline-block;
+  vertical-align: -2px;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+/* Icons inside h4 panel headers */
+.panel-section h4 svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+  color: #fbbf24;
+}
+
+/* Icons inside turn indicator */
+.turn-indicator svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+/* Icons inside economics rows */
+.economics svg {
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+
+/* Icons inside modal titles */
+.modal-card h2 svg {
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
+/* Icons inside list items (rules modal) */
+.rules-modal li svg {
+  vertical-align: -3px;
+  margin-right: 6px;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+/* Cell content icons */
+.cell svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+.cell.hit svg  { color: #ff6b35; }
+.cell.miss svg { color: rgba(200, 200, 180, 0.6); }
+.cell.sheep svg { color: #f0f0ec; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5)); }
+
+/* Game over modal icon */
+.modal-emoji svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Wallet bar center info */
+.wallet-info-center {
+  text-align: center;
+}
+
+/* Escrow address icon */
+.escrow-address svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+/* Pot section icon */
+.current-pot svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+/* Winner/platform cut icons */
+.pot-split svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+/* Spinning animation for loading states */
+.spin {
+  animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Wallet page specific icon alignment */
+.wallet-page svg {
+  vertical-align: -2px;
+}
+
+.wallet-page .btn svg {
+  margin-right: 5px;
+}
+
+.wallet-page .tab svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+.wallet-page .back-button svg {
+  vertical-align: -2px;
+  margin-right: 2px;
+}
+
+.wallet-page h1 svg {
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
+.wallet-page .backup-title svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+.wallet-page .no-history-icon svg {
+  color: rgba(148, 163, 184, 0.3);
+}
+
+/* Settlement notice on game over modal */
+.settlement-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  margin: 2rem 0 1.5rem 0;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 0.5rem;
+  
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.settlement-notice svg {
+  flex-shrink: 0;
+  color: #fbbf24;
+  margin-top: 2px;
+}

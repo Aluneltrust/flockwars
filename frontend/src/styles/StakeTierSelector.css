@@ -1,0 +1,307 @@
+/* ============================================================================
+   STAKE TIER SELECTOR — Sheep-Themed Edition (30% Compact)
+   ============================================================================ */
+
+.tier-selector {
+  margin: 1rem auto;
+  padding: 1rem;
+  max-width: 350px;
+  background: 
+    radial-gradient(ellipse at 20% 80%, rgba(74, 122, 60, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 90, 43, 0.08) 0%, transparent 50%),
+    linear-gradient(170deg, rgba(21, 35, 20, 0.95), rgba(18, 28, 18, 0.97));
+  border-radius: 0.75rem;
+  border: 2px solid rgba(101, 140, 78, 0.3);
+  box-shadow: 
+    0 7px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(101, 140, 78, 0.1) inset,
+    0 1px 0 rgba(180, 210, 140, 0.08) inset;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.tier-selector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(139, 90, 43, 0.4) 0px,
+    rgba(139, 90, 43, 0.4) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.tier-selector.compact {
+  padding: 0.5rem;
+  max-width: 280px;
+}
+
+/* Header */
+.tier-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(101, 140, 78, 0.2);
+  color: #c8ddb8;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.tier-label span:first-child {
+  background: linear-gradient(135deg, #a8d48c, #6da34d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+}
+
+.tier-label .bsv-price {
+  font-size: 0.55rem;
+  color: #7a9a68;
+  font-weight: 400;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(101, 140, 78, 0.15);
+}
+
+/* Tier Grid */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  justify-items: center;
+}
+
+@media (max-width: 500px) {
+  .tier-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 320px) {
+  .tier-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+}
+
+.tier-selector.compact .tier-grid {
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.2rem;
+}
+
+/* Tier Buttons */
+.tier-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  min-width: 50px;
+  padding: 0.85rem 0.35rem;
+  border: 1.5px solid rgba(101, 140, 78, 0.3);
+  border-radius: 0.5rem;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(200, 220, 180, 0.06) 0%, transparent 50%),
+    linear-gradient(145deg, rgba(25, 40, 22, 0.95), rgba(15, 25, 15, 0.9));
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: inherit;
+  gap: 0.2rem;
+  box-shadow: 
+    0 1px 6px rgba(0, 0, 0, 0.25),
+    0 1px 0 rgba(180, 210, 140, 0.05) inset;
+  position: relative;
+}
+
+.tier-btn:hover:not(:disabled) {
+  border-color: #6da34d;
+  background: 
+    radial-gradient(circle at 50% 50%, rgba(109, 163, 77, 0.15) 0%, transparent 60%),
+    linear-gradient(145deg, rgba(30, 50, 28, 0.95), rgba(20, 35, 18, 0.9));
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 18px rgba(109, 163, 77, 0.2),
+    0 3px 8px rgba(0, 0, 0, 0.3),
+    0 1px 0 rgba(180, 210, 140, 0.1) inset;
+}
+
+.tier-btn.selected {
+  border-color: #6da34d;
+  background: 
+    radial-gradient(circle at 50% 40%, rgba(109, 163, 77, 0.2) 0%, transparent 60%),
+    linear-gradient(145deg, rgba(35, 55, 30, 0.95), rgba(20, 35, 18, 0.9));
+  box-shadow: 
+    0 0 14px rgba(109, 163, 77, 0.25),
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    0 0 28px rgba(109, 163, 77, 0.08) inset;
+  transform: translateY(-1px);
+}
+
+.tier-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+}
+
+/* Tier Icon */
+.tier-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+  color: #c8ddb8;
+}
+
+.tier-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tier-btn.selected .tier-icon {
+  color: #a8d48c;
+}
+
+.tier-selector.compact .tier-icon {
+  font-size: 0.9rem;
+}
+
+/* Tier Name */
+.tier-name {
+  font-size: 0.5rem;
+  color: #7a9a68;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.tier-btn.selected .tier-name {
+  color: #a8d48c;
+}
+
+.tier-selector.compact .tier-name {
+  display: none;
+}
+
+/* Tier Amount */
+.tier-amount {
+  font-weight: 500;
+  color: #a8d48c;
+  font-size: 0.8rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.tier-btn.selected .tier-amount {
+  color: #c8f0a0;
+  text-shadow: 0 0 6px rgba(168, 212, 140, 0.3);
+}
+
+.tier-selector.compact .tier-amount {
+  font-size: 0.55rem;
+}
+
+/* Tier Sats */
+.tier-sats {
+  font-size: 0.45rem;
+  color: #5c7a4a;
+  font-family: 'Courier New', monospace;
+}
+
+/* Fee Notice */
+.fee-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  margin-top: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  border-top: none;
+  font-size: 0.6rem;
+  color: #94ab84;
+  text-align: center;
+  background: rgba(139, 90, 43, 0.08);
+  border: 1px solid rgba(139, 90, 43, 0.15);
+  border-radius: 0.35rem;
+  position: relative;
+}
+
+.fee-notice svg {
+  color: #7a9a68;
+  width: 10px;
+  height: 10px;
+}
+
+/* Selected Tier Info */
+.selected-tier-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  padding: 0.5rem 0.7rem;
+  background: 
+    radial-gradient(ellipse at 50% 50%, rgba(109, 163, 77, 0.15) 0%, transparent 70%),
+    rgba(25, 40, 22, 0.6);
+  border-radius: 0.4rem;
+  border: 1px solid rgba(109, 163, 77, 0.25);
+  animation: meadow-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes meadow-glow {
+  0%, 100% { 
+    box-shadow: 
+      0 0 7px rgba(109, 163, 77, 0.15),
+      0 1px 6px rgba(0, 0, 0, 0.2);
+  }
+  50% { 
+    box-shadow: 
+      0 0 18px rgba(109, 163, 77, 0.3),
+      0 3px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.selected-icon {
+  font-size: 1.05rem;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+  color: #a8d48c;
+}
+
+.selected-name {
+  font-weight: 500;
+  color: #a8d48c;
+  font-size: 0.7rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .tier-selector {
+    margin: 0.7rem auto;
+    padding: 0.7rem;
+  }
+  
+  .fee-notice {
+    font-size: 0.55rem;
+  }
+}
+
+/* Override in lobby context */
+.lobby-card .tier-selector {
+  max-width: none;
+  margin: 1rem 0;
+}

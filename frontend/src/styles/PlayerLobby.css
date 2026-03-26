@@ -1,0 +1,467 @@
+/* ============================================================================
+   PLAYER LOBBY STYLES
+   ============================================================================ */
+
+.player-lobby {
+  width: 100%;
+  max-width: 580px;
+  border: 1px solid rgba(255, 191, 0, 0.15);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+/* Header */
+.lobby-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 191, 0, 0.1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.lobby-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0c97f;
+}
+
+.online-count {
+  background: rgba(255, 191, 0, 0.2);
+  color: #ffbf00;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 22px;
+  text-align: center;
+}
+
+/* Player List */
+.lobby-list {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 191, 0, 0.2) transparent;
+}
+
+.lobby-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  color: #8a7a5a;
+  font-size: 14px;
+  text-align: center;
+}
+
+.lobby-empty-hint {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.lobby-share-btn {
+  font-size: 12px;
+  color: #c0a040;
+  background: rgba(255, 191, 0, 0.08);
+  border: 1px dashed rgba(255, 191, 0, 0.25);
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Courier New', monospace;
+}
+
+.lobby-share-btn:hover {
+  background: rgba(255, 191, 0, 0.15);
+  border-color: rgba(255, 191, 0, 0.4);
+  color: #ffbf00;
+}
+
+.icon-dim { opacity: 0.4; }
+
+/* Player Row */
+.lobby-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.lobby-player:hover {
+  background: rgba(255, 191, 0, 0.04);
+}
+
+.lobby-player:last-child {
+  border-bottom: none;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.player-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8e0d0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: #8a7a5a;
+}
+
+.player-stats .stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Status indicators */
+.status-idle { color: #4ade80; }
+.status-matchmaking { color: #facc15; }
+.status-ingame { color: #f97316; }
+
+.status-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-label.status-idle { color: #4ade80; }
+.status-label.status-matchmaking { color: #facc15; }
+.status-label.status-in_game { color: #f97316; }
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Player Actions */
+.player-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-challenge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1406;
+  background: linear-gradient(135deg, #ffbf00, #e6a800);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.btn-challenge:hover {
+  background: linear-gradient(135deg, #ffd040, #ffbf00);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 191, 0, 0.3);
+}
+
+.busy-label {
+  font-size: 11px;
+  color: #6a5a3a;
+  font-style: italic;
+}
+
+/* Tier Quick Pick */
+.tier-quick-pick {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.tier-chip {
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 191, 0, 0.2);
+  background: rgba(255, 191, 0, 0.08);
+  color: #c0a040;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+
+.tier-chip:hover {
+  border-color: rgba(255, 191, 0, 0.4);
+  background: rgba(255, 191, 0, 0.15);
+}
+
+.tier-chip.selected {
+  border-color: #ffbf00;
+  background: rgba(255, 191, 0, 0.25);
+  color: #ffbf00;
+}
+
+/* Incoming Challenge */
+.challenge-incoming-list {
+  border-bottom: 1px solid rgba(255, 191, 0, 0.15);
+}
+
+.challenge-incoming {
+  padding: 12px 14px;
+  background: rgba(255, 191, 0, 0.06);
+  border-bottom: 1px solid rgba(255, 191, 0, 0.08);
+  animation: challengePulse 2s ease-in-out infinite;
+}
+
+@keyframes challengePulse {
+  0%, 100% { background: rgba(255, 191, 0, 0.06); }
+  50% { background: rgba(255, 191, 0, 0.12); }
+}
+
+.challenge-incoming-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.challenge-from {
+  font-weight: 700;
+  color: #ffbf00;
+}
+
+.challenge-tier {
+  font-size: 11px;
+  color: #c0a040;
+  background: rgba(255, 191, 0, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.challenge-countdown {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: #f97316;
+  font-weight: 600;
+}
+
+.challenge-incoming-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-accept {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0a2e0a;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-accept:hover {
+  background: linear-gradient(135deg, #6ee7a0, #4ade80);
+}
+
+.btn-decline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e8e0d0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-decline:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Pending Outgoing Challenge */
+.challenge-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 191, 0, 0.06);
+  border-bottom: 1px solid rgba(255, 191, 0, 0.1);
+  font-size: 13px;
+  color: #c0a040;
+}
+
+.challenge-pending .btn-text {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #8a7a5a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.challenge-pending .btn-text:hover {
+  color: #e0c97f;
+}
+
+.icon-amber { color: #ffbf00; }
+/* ============================================================================
+   PLAYER LOBBY — MOBILE RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .player-lobby {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  .lobby-header {
+    padding: 8px 12px;
+  }
+
+  .lobby-title {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .lobby-player {
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .player-name {
+    font-size: 13px;
+  }
+
+  .player-stats {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .player-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .btn-challenge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .tier-quick-pick {
+    gap: 2px;
+  }
+
+  .tier-chip {
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+
+  .challenge-incoming {
+    padding: 10px 12px;
+  }
+
+  .challenge-incoming-header {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+
+  .challenge-incoming-actions {
+    gap: 6px;
+  }
+
+  .btn-accept,
+  .btn-decline {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .challenge-pending {
+    padding: 8px 12px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+
+  .lobby-empty {
+    padding: 20px 12px;
+    font-size: 13px;
+  }
+
+  .lobby-share-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  .lobby-player {
+    padding: 6px 8px;
+  }
+
+  .player-name {
+    font-size: 12px;
+  }
+
+  .player-stats .stat {
+    font-size: 9px;
+  }
+
+  .online-count {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+}

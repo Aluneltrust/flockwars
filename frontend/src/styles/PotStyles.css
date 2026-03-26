@@ -1,0 +1,100 @@
+/* ============================================================================
+   POT & GAME ECONOMICS STYLES
+   ============================================================================ */
+
+/* Pot Breakdown (Game Over Modal) */
+.pot-breakdown {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.pot-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 0.75rem;
+}
+
+.pot-details {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.75rem;
+}
+
+.pot-details div {
+  margin: 0.25rem 0;
+}
+
+.pot-split {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 0.75rem;
+}
+
+.winner-reward {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4ade80;
+  margin-bottom: 0.5rem;
+}
+
+.loser-result {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f87171;
+  margin-bottom: 0.5rem;
+}
+
+.platform-cut {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+/* Current Pot Display (Side Panel) */
+.current-pot {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(251, 191, 36, 0.15);
+  border-radius: 0.5rem;
+  color: #fbbf24;
+  font-weight: 600;
+  text-align: center;
+  animation: pulse-pot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-pot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Economics Panel */
+.economics {
+  font-size: 0.9rem;
+}
+
+.economics div {
+  margin: 0.25rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.economics .cost {
+  color: #f87171;
+}
+
+.economics .reward {
+  color: #4ade80;
+}
+
+/* Final Balance Display */
+.final-balance {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 0.5rem;
+}

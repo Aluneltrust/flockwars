@@ -1,0 +1,102 @@
+/* ============================================================================
+   ARENA OVERLAY — Grays out inactive arena with status text
+   ============================================================================ */
+
+/* The arena container needs relative positioning for the overlay */
+.arena {
+  position: relative;
+}
+
+/* When arena is inactive, desaturate and dim the grid */
+.arena.arena-inactive .hex-grid {
+  filter: brightness(0.5) saturate(0.3);
+  transition: filter 0.4s ease;
+  pointer-events: none;
+}
+
+/* Keep the title visible but dimmed */
+.arena.arena-inactive .arena-title {
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+}
+
+/* Full overlay covering the hex grid area */
+.arena-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+  animation: overlay-fade-in 0.3s ease forwards;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Centered content card */
+.arena-overlay-content {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem 1.8rem;
+  text-align: center;
+  animation: overlay-content-pop 0.35s ease forwards;
+}
+
+@keyframes overlay-content-pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Main status text */
+.arena-overlay-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Subtext below */
+.arena-overlay-subtext {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.3rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+/* Subtle pulse on the overlay text to show it's a waiting state */
+.arena.arena-inactive .arena-overlay-text {
+  animation: overlay-text-pulse 2s ease-in-out infinite;
+}
+
+@keyframes overlay-text-pulse {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================================================
+   MOBILE — smaller overlay text
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .arena-overlay-content {
+    padding: 0.7rem 1.2rem;
+  }
+  .arena-overlay-text {
+    font-size: 0.9rem;
+  }
+  .arena-overlay-subtext {
+    font-size: 0.65rem;
+  }
+}

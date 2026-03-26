@@ -1,0 +1,44 @@
+/* ============================================================================
+   ARENA VIEW BUTTONS — Camera reset & top-down toggle
+   ============================================================================ */
+
+.arena-view-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #94a3b8;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.arena-view-btn:hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  transform: scale(1.1);
+}
+
+.arena-view-btn:active {
+  transform: scale(0.9);
+  background: rgba(251, 191, 36, 0.3);
+}
+
+@media (max-width: 768px) {
+  .arena-view-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}

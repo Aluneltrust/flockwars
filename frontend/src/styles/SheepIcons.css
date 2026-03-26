@@ -1,0 +1,126 @@
+/* ============================================================================
+   SHEEP ICON STYLES — Variants & Hit Animation
+   ============================================================================ */
+
+/* Base sheep image in cells */
+.sheep-img {
+  position: relative;
+  z-index: 2;
+  transition: filter 0.2s ease;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Subtle idle bob so sheep feel alive */
+.cell.sheep .sheep-img {
+  animation: sheep-idle 3s ease-in-out infinite;
+  animation-delay: var(--sway-delay, 0s);
+}
+
+@keyframes sheep-idle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.5px); }
+}
+
+/* ============================================================================
+   HIT STATE — Tar & Smoke Dissolve
+   The sheep turns black, melts, and dissolves into smoke
+   ============================================================================ */
+
+.sheep-img.sheep-hit {
+  animation: sheep-tar-dissolve 1.2s ease-out forwards;
+}
+
+@keyframes sheep-tar-dissolve {
+  0% {
+    filter: brightness(1) saturate(1);
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  /* Flash white on impact */
+  8% {
+    filter: brightness(3) saturate(0);
+    transform: scale(1.2);
+  }
+  /* Rapidly darken to tar */
+  25% {
+    filter: brightness(0.2) saturate(0.3) sepia(1) hue-rotate(260deg);
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  /* Start melting down */
+  50% {
+    filter: brightness(0.1) saturate(0.2) sepia(1) hue-rotate(260deg) blur(1px);
+    transform: scale(1.1, 0.8) translateY(4px);
+    opacity: 0.85;
+  }
+  /* Dissolve into smoke */
+  75% {
+    filter: brightness(0.05) saturate(0) blur(3px);
+    transform: scale(1.3, 0.5) translateY(8px);
+    opacity: 0.4;
+  }
+  /* Gone */
+  100% {
+    filter: brightness(0) saturate(0) blur(6px);
+    transform: scale(1.5, 0.2) translateY(12px);
+    opacity: 0;
+  }
+}
+
+/* Smoke particles overlay on the hit cell */
+.cell.hit::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: 
+    radial-gradient(circle at 30% 40%, rgba(20, 10, 30, 0.6) 0%, transparent 50%),
+    radial-gradient(circle at 70% 50%, rgba(30, 15, 40, 0.5) 0%, transparent 45%),
+    radial-gradient(circle at 50% 60%, rgba(15, 5, 25, 0.4) 0%, transparent 55%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  z-index: 3;
+  animation: smoke-rise 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes smoke-rise {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  60% {
+    opacity: 0.5;
+    transform: scale(1.1) translateY(-3px);
+  }
+  100% {
+    opacity: 0.15;
+    transform: scale(1.2) translateY(-6px);
+  }
+}
+
+/* ============================================================================
+   HIT-SHEEP CELL — Keep grass background, let tar sheep image do the work
+   Overrides the generic .cell.hit styles
+   ============================================================================ */
+
+.cell.hit-sheep {
+  pointer-events: none;
+}
+
+/* Keep the normal grass background instead of red/tar */
+.cell.hit-sheep::before {
+  background: linear-gradient(180deg, #5a9c35, #3d7a22) !important;
+  animation: none !important;
+  transform: scale(1.06) !important;
+}
+
+.cell.hit-sheep::after {
+  background: linear-gradient(170deg, #7ac050 0%, #5a9c35 40%, #4a8c2a 100%) !important;
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+  inset: 3px !important;
+}
